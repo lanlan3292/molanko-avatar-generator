@@ -150,24 +150,6 @@
             height: 256px;
         }
 
-        /* 目标区域覆盖标记（仅结果预览） */
-        .target-overlay {
-            position: absolute;
-            pointer-events: none;
-            border: 2px dashed rgba(255, 220, 80, 0.8);
-            border-radius: 2px;
-            box-shadow: inset 0 0 0 1px rgba(255, 220, 80, 0.25);
-            /* 使用百分比定位，对应32x32中的(10,7)-(27,24) */
-            left: 31.25%;
-            /* 10/32 */
-            top: 21.875%;
-            /* 7/32 */
-            width: 56.25%;
-            /* 18/32 */
-            height: 56.25%;
-            /* 18/32 */
-        }
-
         .info-row {
             display: flex;
             gap: 16px;
@@ -361,7 +343,6 @@
                 <span class="panel-label">📤 结果图片 (32×32)</span>
                 <div class="preview-wrapper result-preview" id="resultPreviewWrapper">
                     <canvas id="resultCanvas" width="32" height="32"></canvas>
-                    <div class="target-overlay" id="targetOverlay"></div>
                 </div>
                 <div class="info-row">
                     <span class="info-tag">目标区域: <span class="hl2">(10,7) → (27,24)</span></span>

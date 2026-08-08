@@ -74,27 +74,171 @@ let loadedSourceImage = null;
  * @returns {HTMLCanvasElement} 32×32的结果画布
  */
 function processTexture(sourceImage) {
-    // 1. 按原有逻辑绘制到临时画布（裁剪 + 拉伸）
-    const tempCanvas = document.createElement('canvas');
-    tempCanvas.width = RESULT_WIDTH;
-    tempCanvas.height = RESULT_HEIGHT;
-    const tempCtx = tempCanvas.getContext('2d');
-    tempCtx.imageSmoothingEnabled = false;
-    tempCtx.drawImage(
+    // 1. 创建中间画布（32×32），用于绘制所有内容（未翻转）
+    const canvas = document.createElement('canvas');
+    canvas.width = RESULT_WIDTH;
+    canvas.height = RESULT_HEIGHT;
+    const ctx = canvas.getContext('2d');
+    ctx.imageSmoothingEnabled = false;
+
+    const alpha = 76 / 255; // 半透明黑块透明度
+
+    // 2. 第一个拉伸（原有）：裁剪 (56,8)-(63,15) → 目标 (10,7)-(27,24)（无黑块）
+    ctx.drawImage(
         sourceImage,
         SRC_X1, SRC_Y1, SRC_W, SRC_H,
         DST_X1, DST_Y1, DST_W, DST_H
     );
 
-    // 2. 创建最终画布并对临时画布进行水平翻转
+    // 3. 第二个拉伸：裁剪 (48,8)-(55,15) → 目标 (4,7)-(9,24) + 黑块（隔离绘制）
+    const SRC_X1_2 = 48, SRC_Y1_2 = 8, SRC_X2_2 = 55, SRC_Y2_2 = 15;
+    const SRC_W_2 = SRC_X2_2 - SRC_X1_2 + 1; // 8
+    const SRC_H_2 = SRC_Y2_2 - SRC_Y1_2 + 1; // 8
+    const DST_X1_2 = 4, DST_Y1_2 = 7, DST_X2_2 = 9, DST_Y2_2 = 24;
+    const DST_W_2 = DST_X2_2 - DST_X1_2 + 1; // 6
+    const DST_H_2 = DST_Y2_2 - DST_Y1_2 + 1; // 18
+
+    const tempCanvas2 = document.createElement('canvas');
+    tempCanvas2.width = DST_W_2;
+    tempCanvas2.height = DST_H_2;
+    const tempCtx2 = tempCanvas2.getContext('2d');
+    tempCtx2.imageSmoothingEnabled = false;
+    tempCtx2.drawImage(
+        sourceImage,
+        SRC_X1_2, SRC_Y1_2, SRC_W_2, SRC_H_2,
+        0, 0, DST_W_2, DST_H_2
+    );
+    tempCtx2.globalCompositeOperation = 'source-atop';
+    tempCtx2.fillStyle = `rgba(0, 0, 0, ${alpha})`;
+    tempCtx2.fillRect(0, 0, DST_W_2, DST_H_2);
+    tempCtx2.globalCompositeOperation = 'source-over';
+    ctx.drawImage(tempCanvas2, DST_X1_2, DST_Y1_2);
+
+    // 4. 第三个拉伸：裁剪 (24,8)-(31,15) → 目标 (11,8)-(26,23)（无黑块）
+    const SRC_X1_3 = 24, SRC_Y1_3 = 8, SRC_X2_3 = 31, SRC_Y2_3 = 15;
+    const SRC_W_3 = SRC_X2_3 - SRC_X1_3 + 1; // 8
+    const SRC_H_3 = SRC_Y2_3 - SRC_Y1_3 + 1; // 8
+    const DST_X1_3 = 11, DST_Y1_3 = 8, DST_X2_3 = 26, DST_Y2_3 = 23;
+    const DST_W_3 = DST_X2_3 - DST_X1_3 + 1; // 16
+    const DST_H_3 = DST_Y2_3 - DST_Y1_3 + 1; // 16
+    ctx.drawImage(
+        sourceImage,
+        SRC_X1_3, SRC_Y1_3, SRC_W_3, SRC_H_3,
+        DST_X1_3, DST_Y1_3, DST_W_3, DST_H_3
+    );
+
+    // 5. 第四个拉伸：裁剪 (16,8)-(23,15) → 目标 (5,8)-(10,23) + 黑块（隔离绘制）
+    const SRC_X1_4 = 16, SRC_Y1_4 = 8, SRC_X2_4 = 23, SRC_Y2_4 = 15;
+    const SRC_W_4 = SRC_X2_4 - SRC_X1_4 + 1; // 8
+    const SRC_H_4 = SRC_Y2_4 - SRC_Y1_4 + 1; // 8
+    const DST_X1_4 = 5, DST_Y1_4 = 8, DST_X2_4 = 10, DST_Y2_4 = 23;
+    const DST_W_4 = DST_X2_4 - DST_X1_4 + 1; // 6
+    const DST_H_4 = DST_Y2_4 - DST_Y1_4 + 1; // 16
+
+    const tempCanvas4 = document.createElement('canvas');
+    tempCanvas4.width = DST_W_4;
+    tempCanvas4.height = DST_H_4;
+    const tempCtx4 = tempCanvas4.getContext('2d');
+    tempCtx4.imageSmoothingEnabled = false;
+    tempCtx4.drawImage(
+        sourceImage,
+        SRC_X1_4, SRC_Y1_4, SRC_W_4, SRC_H_4,
+        0, 0, DST_W_4, DST_H_4
+    );
+    tempCtx4.globalCompositeOperation = 'source-atop';
+    tempCtx4.fillStyle = `rgba(0, 0, 0, ${alpha})`;
+    tempCtx4.fillRect(0, 0, DST_W_4, DST_H_4);
+    tempCtx4.globalCompositeOperation = 'source-over';
+    ctx.drawImage(tempCanvas4, DST_X1_4, DST_Y1_4);
+
+    // 6. 整体左右翻转（水平镜像）
     const finalCanvas = document.createElement('canvas');
     finalCanvas.width = RESULT_WIDTH;
     finalCanvas.height = RESULT_HEIGHT;
-    const ctx = finalCanvas.getContext('2d');
-    ctx.imageSmoothingEnabled = false;
-    ctx.translate(RESULT_WIDTH, 0);
-    ctx.scale(-1, 1);
-    ctx.drawImage(tempCanvas, 0, 0);
+    const finalCtx = finalCanvas.getContext('2d');
+    finalCtx.imageSmoothingEnabled = false;
+    finalCtx.translate(RESULT_WIDTH, 0);
+    finalCtx.scale(-1, 1);
+    finalCtx.drawImage(canvas, 0, 0);
+
+    // --- 以下操作位于翻转之后，不受翻转影响 ---
+    // 重置变换矩阵
+    finalCtx.setTransform(1, 0, 0, 1, 0, 0);
+    finalCtx.imageSmoothingEnabled = false;
+
+    // 7. 翻转后拉伸：裁剪 (8,8)-(15,15) → 目标 (11,8)-(26,23)（无黑块）
+    const SRC_X1_5 = 8, SRC_Y1_5 = 8, SRC_X2_5 = 15, SRC_Y2_5 = 15;
+    const SRC_W_5 = SRC_X2_5 - SRC_X1_5 + 1; // 8
+    const SRC_H_5 = SRC_Y2_5 - SRC_Y1_5 + 1; // 8
+    const DST_X1_5 = 11, DST_Y1_5 = 8, DST_X2_5 = 26, DST_Y2_5 = 23;
+    const DST_W_5 = DST_X2_5 - DST_X1_5 + 1; // 16
+    const DST_H_5 = DST_Y2_5 - DST_Y1_5 + 1; // 16
+    finalCtx.drawImage(
+        sourceImage,
+        SRC_X1_5, SRC_Y1_5, SRC_W_5, SRC_H_5,
+        DST_X1_5, DST_Y1_5, DST_W_5, DST_H_5
+    );
+
+    // 8. 翻转后拉伸：裁剪 (0,8)-(7,15) → 目标 (5,8)-(10,23) + 黑块（隔离绘制）
+    const SRC_X1_6 = 0, SRC_Y1_6 = 8, SRC_X2_6 = 7, SRC_Y2_6 = 15;
+    const SRC_W_6 = SRC_X2_6 - SRC_X1_6 + 1; // 8
+    const SRC_H_6 = SRC_Y2_6 - SRC_Y1_6 + 1; // 8
+    const DST_X1_6 = 5, DST_Y1_6 = 8, DST_X2_6 = 10, DST_Y2_6 = 23;
+    const DST_W_6 = DST_X2_6 - DST_X1_6 + 1; // 6
+    const DST_H_6 = DST_Y2_6 - DST_Y1_6 + 1; // 16
+
+    const tempCanvas6 = document.createElement('canvas');
+    tempCanvas6.width = DST_W_6;
+    tempCanvas6.height = DST_H_6;
+    const tempCtx6 = tempCanvas6.getContext('2d');
+    tempCtx6.imageSmoothingEnabled = false;
+    tempCtx6.drawImage(
+        sourceImage,
+        SRC_X1_6, SRC_Y1_6, SRC_W_6, SRC_H_6,
+        0, 0, DST_W_6, DST_H_6
+    );
+    tempCtx6.globalCompositeOperation = 'source-atop';
+    tempCtx6.fillStyle = `rgba(0, 0, 0, ${alpha})`;
+    tempCtx6.fillRect(0, 0, DST_W_6, DST_H_6);
+    tempCtx6.globalCompositeOperation = 'source-over';
+    finalCtx.drawImage(tempCanvas6, DST_X1_6, DST_Y1_6);
+
+    // 9. 翻转后拉伸：裁剪 (40,8)-(47,15) → 目标 (10,7)-(27,24)（无黑块）
+    const SRC_X1_7 = 40, SRC_Y1_7 = 8, SRC_X2_7 = 47, SRC_Y2_7 = 15;
+    const SRC_W_7 = SRC_X2_7 - SRC_X1_7 + 1; // 8
+    const SRC_H_7 = SRC_Y2_7 - SRC_Y1_7 + 1; // 8
+    const DST_X1_7 = 10, DST_Y1_7 = 7, DST_X2_7 = 27, DST_Y2_7 = 24;
+    const DST_W_7 = DST_X2_7 - DST_X1_7 + 1; // 18
+    const DST_H_7 = DST_Y2_7 - DST_Y1_7 + 1; // 18
+    finalCtx.drawImage(
+        sourceImage,
+        SRC_X1_7, SRC_Y1_7, SRC_W_7, SRC_H_7,
+        DST_X1_7, DST_Y1_7, DST_W_7, DST_H_7
+    );
+
+    // 10. 翻转后拉伸：裁剪 (32,8)-(39,15) → 目标 (4,7)-(9,24) + 黑块（隔离绘制）
+    const SRC_X1_8 = 32, SRC_Y1_8 = 8, SRC_X2_8 = 39, SRC_Y2_8 = 15;
+    const SRC_W_8 = SRC_X2_8 - SRC_X1_8 + 1; // 8
+    const SRC_H_8 = SRC_Y2_8 - SRC_Y1_8 + 1; // 8
+    const DST_X1_8 = 4, DST_Y1_8 = 7, DST_X2_8 = 9, DST_Y2_8 = 24;
+    const DST_W_8 = DST_X2_8 - DST_X1_8 + 1; // 6
+    const DST_H_8 = DST_Y2_8 - DST_Y1_8 + 1; // 18
+
+    const tempCanvas8 = document.createElement('canvas');
+    tempCanvas8.width = DST_W_8;
+    tempCanvas8.height = DST_H_8;
+    const tempCtx8 = tempCanvas8.getContext('2d');
+    tempCtx8.imageSmoothingEnabled = false;
+    tempCtx8.drawImage(
+        sourceImage,
+        SRC_X1_8, SRC_Y1_8, SRC_W_8, SRC_H_8,
+        0, 0, DST_W_8, DST_H_8
+    );
+    tempCtx8.globalCompositeOperation = 'source-atop';
+    tempCtx8.fillStyle = `rgba(0, 0, 0, ${alpha})`;
+    tempCtx8.fillRect(0, 0, DST_W_8, DST_H_8);
+    tempCtx8.globalCompositeOperation = 'source-over';
+    finalCtx.drawImage(tempCanvas8, DST_X1_8, DST_Y1_8);
 
     return finalCanvas;
 }
@@ -118,51 +262,7 @@ function drawSourcePreview(sourceImage) {
 
     // 1. 绘制原图
     ctx.drawImage(sourceImage, 0, 0);
-
-    // 2. 绘制半透明暗色覆盖（裁剪区域外变暗，突出裁剪区域）
-    ctx.fillStyle = 'rgba(0, 0, 0, 0.5)';
-    // 上方矩形
-    ctx.fillRect(0, 0, w, SRC_Y1);
-    // 下方矩形
-    ctx.fillRect(0, SRC_Y1 + SRC_H, w, h - (SRC_Y1 + SRC_H));
-    // 左方矩形（裁剪区域左侧）
-    ctx.fillRect(0, SRC_Y1, SRC_X1, SRC_H);
-    // 右方矩形（裁剪区域右侧）
-    ctx.fillRect(SRC_X1 + SRC_W, SRC_Y1, w - (SRC_X1 + SRC_W), SRC_H);
-
-    // 3. 绘制裁剪区域边框（亮色高亮）
-    ctx.strokeStyle = '#ffcc00';
-    ctx.lineWidth = Math.max(1, Math.floor(w / 64)); // 根据图片尺寸调整线宽
-    ctx.strokeRect(SRC_X1, SRC_Y1, SRC_W, SRC_H);
-
-    // 4. 在裁剪区域四角绘制小标记（增强可见性）
-    const cornerLen = Math.max(3, Math.floor(w / 20));
-    ctx.strokeStyle = '#ff4444';
-    ctx.lineWidth = Math.max(1, Math.floor(w / 48));
-    // 左上角
-    ctx.beginPath();
-    ctx.moveTo(SRC_X1, SRC_Y1 + cornerLen);
-    ctx.lineTo(SRC_X1, SRC_Y1);
-    ctx.lineTo(SRC_X1 + cornerLen, SRC_Y1);
-    ctx.stroke();
-    // 右上角
-    ctx.beginPath();
-    ctx.moveTo(SRC_X1 + SRC_W - cornerLen, SRC_Y1);
-    ctx.lineTo(SRC_X1 + SRC_W, SRC_Y1);
-    ctx.lineTo(SRC_X1 + SRC_W, SRC_Y1 + cornerLen);
-    ctx.stroke();
-    // 左下角
-    ctx.beginPath();
-    ctx.moveTo(SRC_X1, SRC_Y1 + SRC_H - cornerLen);
-    ctx.lineTo(SRC_X1, SRC_Y1 + SRC_H);
-    ctx.lineTo(SRC_X1 + cornerLen, SRC_Y1 + SRC_H);
-    ctx.stroke();
-    // 右下角
-    ctx.beginPath();
-    ctx.moveTo(SRC_X1 + SRC_W - cornerLen, SRC_Y1 + SRC_H);
-    ctx.lineTo(SRC_X1 + SRC_W, SRC_Y1 + SRC_H);
-    ctx.lineTo(SRC_X1 + SRC_W, SRC_Y1 + SRC_H - cornerLen);
-    ctx.stroke();
+    
 }
 
 /**
@@ -310,13 +410,6 @@ function initPlaceholders() {
     srcCtx.fillStyle = '#1a1a28';
     srcCtx.fillRect(0, 0, srcCanvas.width, srcCanvas.height);
 
-    // 绘制虚线裁剪区域预览
-    srcCtx.strokeStyle = 'rgba(255, 200, 60, 0.5)';
-    srcCtx.lineWidth = 1;
-    srcCtx.setLineDash([3, 3]);
-    srcCtx.strokeRect(SRC_X1, SRC_Y1, SRC_W, SRC_H);
-    srcCtx.setLineDash([]);
-
     // 中央文字
     srcCtx.fillStyle = 'rgba(200,200,220,0.7)';
     srcCtx.font = '10px "Segoe UI","PingFang SC","Microsoft YaHei",sans-serif';
@@ -331,13 +424,6 @@ function initPlaceholders() {
     const rstCtx = resultCtx;
     rstCtx.imageSmoothingEnabled = false;
     rstCtx.clearRect(0, 0, rstCanvas.width, rstCanvas.height);
-
-    // 在结果画布上绘制虚线目标区域
-    rstCtx.strokeStyle = 'rgba(255, 220, 80, 0.45)';
-    rstCtx.lineWidth = 1;
-    rstCtx.setLineDash([2, 2]);
-    rstCtx.strokeRect(DST_X1, DST_Y1, DST_W, DST_H);
-    rstCtx.setLineDash([]);
 
     // 隐藏目标覆盖层（等有结果后再显示）
     targetOverlay.style.display = 'none';
