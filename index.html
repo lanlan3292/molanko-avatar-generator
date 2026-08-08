@@ -1,9 +1,10 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>纹理区域拉伸工具 - 类似Blockbench</title>
+    <title>纹理区域拉伸工具</title>
     <style>
         :root {
             --bg: #1e1e2e;
@@ -13,7 +14,6 @@
             --text2: #b0b0c0;
             --accent: #7c8cf8;
             --accent-hover: #9ba8ff;
-            --danger: #f07070;
             --warning: #f0c060;
             --success: #60d080;
             --border: #3a3a55;
@@ -36,30 +36,28 @@
             justify-content: center;
             align-items: center;
             padding: 20px;
-            background-image:
-                radial-gradient(ellipse at 30% 20%, rgba(120, 130, 240, 0.08) 0%, transparent 60%),
+            background-image: radial-gradient(ellipse at 30% 20%, rgba(120, 130, 240, 0.08) 0%, transparent 60%),
                 radial-gradient(ellipse at 70% 70%, rgba(100, 200, 150, 0.05) 0%, transparent 60%);
         }
 
         .app-container {
             width: 100%;
-            max-width: 820px;
+            max-width: 950px;
             background: var(--surface);
             border-radius: 16px;
-            padding: 36px 32px 28px;
+            padding: 32px 28px 24px;
             box-shadow: var(--shadow);
             border: 1px solid var(--border);
         }
 
         .app-header {
             text-align: center;
-            margin-bottom: 28px;
+            margin-bottom: 24px;
         }
 
         .app-header h1 {
             font-size: 1.7rem;
             font-weight: 700;
-            letter-spacing: -0.01em;
             color: #fff;
             margin-bottom: 6px;
         }
@@ -67,10 +65,9 @@
         .app-header .subtitle {
             font-size: 0.9rem;
             color: var(--text2);
-            font-weight: 400;
         }
 
-        .app-header .badge {
+        .badge {
             display: inline-block;
             background: var(--accent);
             color: #fff;
@@ -79,15 +76,11 @@
             padding: 3px 10px;
             border-radius: 20px;
             margin-left: 8px;
-            letter-spacing: 0.04em;
-            vertical-align: middle;
-            position: relative;
-            top: -1px;
         }
 
         .main-content {
             display: flex;
-            gap: 28px;
+            gap: 24px;
             flex-wrap: wrap;
             justify-content: center;
             align-items: flex-start;
@@ -96,10 +89,10 @@
         .panel {
             flex: 1 1 300px;
             min-width: 280px;
-            max-width: 380px;
+            max-width: 420px;
             background: var(--surface2);
             border-radius: var(--radius);
-            padding: 20px;
+            padding: 18px;
             border: 1px solid var(--border);
             display: flex;
             flex-direction: column;
@@ -113,79 +106,71 @@
             text-transform: uppercase;
             letter-spacing: 0.06em;
             color: var(--text2);
-            text-align: center;
         }
 
         .preview-wrapper {
             position: relative;
-            display: inline-block;
             border-radius: 6px;
             overflow: hidden;
             box-shadow: 0 2px 12px rgba(0, 0, 0, 0.5);
             background: #1a1a28;
-            /* 棋盘格背景用于显示透明 */
-            background-image:
-                linear-gradient(45deg, #2a2a3a 25%, transparent 25%),
+            background-image: linear-gradient(45deg, #2a2a3a 25%, transparent 25%),
                 linear-gradient(-45deg, #2a2a3a 25%, transparent 25%),
                 linear-gradient(45deg, transparent 75%, #2a2a3a 75%),
                 linear-gradient(-45deg, transparent 75%, #2a2a3a 75%);
             background-size: 16px 16px;
             background-position: 0 0, 0 8px, 8px -8px, -8px 0px;
             line-height: 0;
+            /* 固定显示尺寸 */
+            display: flex;
+            justify-content: center;
+            align-items: center;
         }
 
+        /* 源预览固定 320×320 显示 */
+        .preview-wrapper.source-preview canvas {
+            width: 320px;
+            height: 320px;
+        }
+
+        /* 结果预览固定 256×256 显示 */
+        .preview-wrapper.result-preview canvas {
+            width: 320px;
+            height: 320px;
+        }
+
+        /* 所有预览保持像素硬边缘 */
         .preview-wrapper canvas {
             display: block;
             image-rendering: pixelated;
             image-rendering: crisp-edges;
         }
 
-        .preview-wrapper.source-preview canvas {
-            width: 320px;
-            height: 320px;
-        }
-
-        .preview-wrapper.result-preview canvas {
-            width: 256px;
-            height: 256px;
-        }
-
         .info-row {
             display: flex;
-            gap: 16px;
+            gap: 12px;
             flex-wrap: wrap;
             justify-content: center;
             font-size: 0.78rem;
             color: var(--text2);
-            text-align: center;
         }
 
         .info-tag {
             background: var(--bg);
-            padding: 5px 10px;
-            border-radius: 14px;
+            padding: 4px 10px;
+            border-radius: 12px;
             font-family: 'SF Mono', 'Cascadia Code', 'Consolas', 'Menlo', monospace;
             font-size: 0.73rem;
             white-space: nowrap;
             border: 1px solid var(--border);
         }
 
-        .info-tag .hl {
-            color: var(--warning);
-            font-weight: 600;
-        }
-
-        .info-tag .hl2 {
-            color: var(--success);
-            font-weight: 600;
-        }
-
         .btn-row {
             display: flex;
-            gap: 12px;
+            gap: 10px;
             flex-wrap: wrap;
             justify-content: center;
-            margin-top: 8px;
+            margin-top: 6px;
         }
 
         .btn {
@@ -196,36 +181,11 @@
             border-radius: 8px;
             cursor: pointer;
             letter-spacing: 0.03em;
-            transition: all 0.2s ease;
+            transition: all 0.2s;
             font-family: inherit;
             display: inline-flex;
             align-items: center;
-            gap: 7px;
-        }
-
-        .btn-primary {
-            background: var(--accent);
-            color: #fff;
-            box-shadow: 0 2px 8px rgba(120, 140, 248, 0.3);
-        }
-        .btn-primary:hover {
-            background: var(--accent-hover);
-            box-shadow: 0 4px 16px rgba(120, 140, 248, 0.45);
-            transform: translateY(-1px);
-        }
-        .btn-primary:active {
-            transform: translateY(0);
-            box-shadow: 0 1px 4px rgba(120, 140, 248, 0.3);
-        }
-
-        .btn-secondary {
-            background: var(--surface2);
-            color: var(--text);
-            border: 1px solid var(--border);
-        }
-        .btn-secondary:hover {
-            background: #3a3a58;
-            border-color: #555;
+            gap: 6px;
         }
 
         .btn-success {
@@ -233,22 +193,18 @@
             color: #fff;
             box-shadow: 0 2px 8px rgba(80, 180, 100, 0.25);
         }
+
         .btn-success:hover {
             background: #4a9660;
             box-shadow: 0 4px 14px rgba(80, 180, 100, 0.4);
             transform: translateY(-1px);
         }
+
         .btn-success:disabled {
             background: #3a3a50;
             color: #777;
             cursor: not-allowed;
             box-shadow: none;
-            transform: none;
-        }
-        .btn-success:disabled:hover {
-            background: #3a3a50;
-            box-shadow: none;
-            transform: none;
         }
 
         .drop-zone {
@@ -257,80 +213,120 @@
             padding: 18px 20px;
             text-align: center;
             cursor: pointer;
-            transition: all 0.25s ease;
+            transition: all 0.25s;
             color: var(--text2);
             font-size: 0.85rem;
             background: transparent;
             width: 100%;
             max-width: 320px;
         }
+
         .drop-zone:hover,
         .drop-zone.drag-over {
             border-color: var(--accent);
             background: rgba(120, 140, 248, 0.06);
             color: #fff;
         }
+
         .drop-zone .icon {
             font-size: 2rem;
             display: block;
             margin-bottom: 6px;
         }
 
-        .footer-note {
-            text-align: center;
-            margin-top: 24px;
-            font-size: 0.72rem;
-            color: #666;
-            letter-spacing: 0.03em;
+        .settings-group {
+            width: 100%;
+            background: var(--bg);
+            border-radius: var(--radius);
+            padding: 16px;
+            border: 1px solid var(--border);
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
         }
 
-        @media (max-width: 700px) {
+        .setting-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .setting-label {
+            font-size: 0.8rem;
+            color: var(--text2);
+            font-weight: 500;
+        }
+
+        .color-input {
+            width: 40px;
+            height: 28px;
+            padding: 0;
+            border: 1px solid var(--border);
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        .radio-group {
+            display: flex;
+            gap: 16px;
+        }
+
+        .radio-group label {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            font-size: 0.8rem;
+            cursor: pointer;
+        }
+
+        select,
+        input[type="checkbox"] {
+            accent-color: var(--accent);
+        }
+
+        .footer-note {
+            text-align: center;
+            margin-top: 20px;
+            font-size: 0.72rem;
+            color: #666;
+        }
+
+        @media (max-width:700px) {
             .app-container {
-                padding: 20px 14px 16px;
+                padding: 18px 12px 14px;
             }
+
             .main-content {
-                gap: 16px;
+                gap: 14px;
             }
+
             .panel {
-                padding: 14px;
-                gap: 10px;
-            }
-            .preview-wrapper.source-preview canvas {
-                width: 220px;
-                height: 220px;
-            }
-            .preview-wrapper.result-preview canvas {
-                width: 180px;
-                height: 180px;
-            }
-            .app-header h1 {
-                font-size: 1.3rem;
+                padding: 12px;
+                gap: 8px;
             }
         }
     </style>
 </head>
-<body>
 
+<body>
     <div class="app-container">
-        <!-- 头部 -->
         <div class="app-header">
-            <h1>🔧 纹理区域拉伸工具 <span class="badge">Blockbench风格</span></h1>
-            <p class="subtitle">从64×64图片裁剪8×8区域 → 拉伸至32×32画布的18×18区域（最近邻插值）</p>
+            <h1>🔧 纹理区域拉伸工具 <span class="badge">最近邻插值</span></h1>
+            <p class="subtitle">多区域拼接 · 描边 · 背景色 · 倍率缩放</p>
         </div>
 
-        <!-- 主要内容区 -->
         <div class="main-content">
             <!-- 左侧：原图预览 -->
-            <div class="panel" id="sourcePanel">
+            <div class="panel">
                 <span class="panel-label">📥 原始图片 (64×64)</span>
-                <div class="preview-wrapper source-preview" id="sourcePreviewWrapper">
+                <div class="preview-wrapper source-preview">
                     <canvas id="sourcePreviewCanvas" width="64" height="64"></canvas>
                 </div>
                 <div class="info-row">
-                    <span class="info-tag">裁剪区域: <span class="hl">(56,8) → (63,15)</span></span>
-                    <span class="info-tag">尺寸: <span class="hl">8×8 px</span></span>
+                    <span class="info-tag">源区域：多个8×8块</span>
                 </div>
-                <!-- 拖放区域 -->
                 <div class="drop-zone" id="dropZone">
                     <span class="icon">🖼️</span>
                     拖放图片到此处<br>或点击选择文件
@@ -338,33 +334,55 @@
                 <input type="file" id="fileInput" accept="image/*" style="display:none;">
             </div>
 
-            <!-- 右侧：结果预览 -->
-            <div class="panel" id="resultPanel">
-                <span class="panel-label">📤 结果图片 (32×32)</span>
+            <!-- 右侧：结果预览与设置 -->
+            <div class="panel">
+                <span class="panel-label">📤 结果预览</span>
                 <div class="preview-wrapper result-preview" id="resultPreviewWrapper">
-                    <canvas id="resultCanvas" width="32" height="32"></canvas>
+                    <canvas id="resultCanvas"></canvas>
                 </div>
-                <div class="info-row">
-                    <span class="info-tag">目标区域: <span class="hl2">(10,7) → (27,24)</span></span>
-                    <span class="info-tag">拉伸至: <span class="hl2">18×18 px</span></span>
+                <!-- 设置面板 -->
+                <div class="settings-group">
+                    <div class="setting-row">
+                        <span class="setting-label">描边模式</span>
+                        <div class="radio-group" id="outlineMode">
+                            <label><input type="radio" name="outline" value="0" checked> 无</label>
+                            <label><input type="radio" name="outline" value="1"> 1px</label>
+                            <label><input type="radio" name="outline" value="2"> 2px</label>
+                        </div>
+                    </div>
+                    <div class="setting-row">
+                        <span class="setting-label">描边颜色</span>
+                        <input type="color" id="outlineColor" class="color-input" value="#000000">
+                    </div>
+                    <div class="setting-row">
+                        <span class="setting-label">背景颜色</span>
+                        <input type="color" id="bgColor" class="color-input" value="#888888">
+                    </div>
+                    <div class="setting-row">
+                        <span class="setting-label">倍率缩放</span>
+                        <select id="scaleSelect">
+                            <option value="1">1x（原始）</option>
+                            <option value="5">5x</option>
+                            <option value="10">10x</option>
+                            <option value="20">20x</option>
+                            <option value="50">50x</option>
+                        </select>
+                    </div>
+                    <div class="setting-row">
+                        <label class="radio-group" style="gap:8px;">
+                            <input type="checkbox" id="upscale48" checked>
+                            <span class="setting-label">提升至48×48（居中，填充背景）</span>
+                        </label>
+                    </div>
                 </div>
-                <span class="info-tag" style="font-size:0.7rem;">⚠ 非整数倍拉伸 (8→18, 比例2.25×)</span>
                 <div class="btn-row">
-                    <button class="btn btn-success" id="downloadBtn" disabled title="先导入图片才能下载">
-                        💾 下载结果PNG
-                    </button>
+                    <button class="btn btn-success" id="downloadBtn" disabled>💾 下载结果PNG</button>
                 </div>
             </div>
         </div>
-
-        <p class="footer-note">
-            🎨 使用最近邻插值（imageSmoothingEnabled = false）&nbsp;|&nbsp;
-            类似Blockbench纹理缩放 &nbsp;|&nbsp;
-            透明背景保留
-        </p>
+        <p class="footer-note">最近邻插值 · 像素硬边缘 · 透明背景保留</p>
     </div>
-
-    <!-- 脚本文件分离 -->
     <script src="script.js"></script>
 </body>
+
 </html>
