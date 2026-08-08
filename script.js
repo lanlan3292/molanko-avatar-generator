@@ -312,8 +312,8 @@ function drawSourcePreview(sourceImage) {
 }
 
 function handleImage(img) {
-    if (img.width <= 63 || img.height <= 15) {
-        alert(`图片尺寸不足！当前：${img.width}×${img.height}，至少需要64×16`);
+    if (img.width <= 63 || img.height <= 63) {
+        alert(`图片尺寸不足！当前：${img.width}×${img.height}，至少需要64×64`);
         return;
     }
     drawSourcePreview(img);
