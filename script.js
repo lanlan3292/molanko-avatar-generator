@@ -1,5 +1,6 @@
 /**
  * script.js — 纹理区域拉伸 + 描边 + 背景色 + 倍率缩放 + 多自动颜色预设
+ * 更新：描边不扩展画布，32×32画布足够；背景填充与画布尺寸解耦
  */
 
 // ========== DOM引用 ==========
@@ -18,6 +19,7 @@ const bgColorInput = document.getElementById('bgColor');
 const bgPresetSelect = document.getElementById('bgPreset');
 const scaleSelect = document.getElementById('scaleSelect');
 const upscale48Checkbox = document.getElementById('upscale48');
+const fillBackgroundCheckbox = document.getElementById('fillBackground');
 
 // ========== 状态 ==========
 let base32Canvas = null;
@@ -218,23 +220,23 @@ function applyOutline(destCtx, contentCanvas, offsetX, offsetY, outlineRadius, o
     destCtx.putImageData(imgData, 0, 0);
 }
 
+// ★ 核心修改：画布尺寸逻辑
 function buildFinalCanvas() {
     if (!base32Canvas) return null;
     const outlineMode = parseInt(document.querySelector('input[name="outline"]:checked').value);
     const outlineColor = outlineColorInput.value;
     const bgColor = bgColorInput.value;
     const upscale48 = upscale48Checkbox.checked;
+    const fillBg = fillBackgroundCheckbox.checked;
 
     let finalWidth, finalHeight, offsetX, offsetY;
     if (upscale48) {
         finalWidth = 48; finalHeight = 48;
         offsetX = 8; offsetY = 8;
     } else {
-        const expand = outlineMode * 2;
-        finalWidth = 32 + expand;
-        finalHeight = 32 + expand;
-        offsetX = outlineMode;
-        offsetY = outlineMode;
+        // 不提升时，画布固定为32×32，描边直接画在画布上，不扩展分辨率
+        finalWidth = 32; finalHeight = 32;
+        offsetX = 0; offsetY = 0;
     }
 
     const canvas = document.createElement('canvas');
@@ -243,10 +245,12 @@ function buildFinalCanvas() {
     const ctx = canvas.getContext('2d');
     ctx.imageSmoothingEnabled = false;
 
-    if (finalWidth > 32 || finalHeight > 32) {
+    // 仅在画布大于32×32 且 启用了填充背景 时才铺底色
+    if (fillBg) {
         ctx.fillStyle = bgColor;
         ctx.fillRect(0, 0, finalWidth, finalHeight);
     }
+
     ctx.drawImage(base32Canvas, offsetX, offsetY);
     if (outlineMode > 0) {
         applyOutline(ctx, base32Canvas, offsetX, offsetY, outlineMode, outlineColor);
@@ -312,7 +316,6 @@ function handleImage(img) {
     drawSourcePreview(img);
     base32Canvas = createBaseTexture(img);
 
-    // 根据当前预设重新计算颜色（基于新图像）
     applyOutlinePreset(outlinePresetSelect.value);
     applyBgPreset(bgPresetSelect.value);
     renderFinal();
@@ -366,6 +369,7 @@ function initPlaceholders() {
     sctx.fillText('导入图片', 32, 28);
     sctx.fillText('64×64', 32, 42);
 
+    // 初始预览画布尺寸根据默认设置（默认勾选提升至48×48，所以初始为48×48）
     resultCanvas.width = 48;
     resultCanvas.height = 48;
     resultCtx.clearRect(0, 0, 48, 48);
@@ -396,7 +400,8 @@ downloadBtn.addEventListener('click', downloadResult);
 for (const radio of outlineRadios) radio.addEventListener('change', renderFinal);
 scaleSelect.addEventListener('change', renderFinal);
 upscale48Checkbox.addEventListener('change', renderFinal);
+fillBackgroundCheckbox.addEventListener('change', renderFinal);
 
 // 启动
 initPlaceholders();
-console.log('✅ 纹理工具已就绪（多自动颜色预设）');
+console.log('✅ 纹理工具已就绪（描边不扩展画布，32×32足矣）');
