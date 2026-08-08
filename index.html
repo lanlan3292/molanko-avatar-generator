@@ -121,25 +121,21 @@
             background-size: 16px 16px;
             background-position: 0 0, 0 8px, 8px -8px, -8px 0px;
             line-height: 0;
-            /* 固定显示尺寸 */
             display: flex;
             justify-content: center;
             align-items: center;
         }
 
-        /* 源预览固定 320×320 显示 */
         .preview-wrapper.source-preview canvas {
             width: 320px;
             height: 320px;
         }
 
-        /* 结果预览固定 256×256 显示 */
         .preview-wrapper.result-preview canvas {
             width: 320px;
             height: 320px;
         }
 
-        /* 所有预览保持像素硬边缘 */
         .preview-wrapper canvas {
             display: block;
             image-rendering: pixelated;
@@ -268,6 +264,21 @@
             cursor: pointer;
         }
 
+        .color-preset {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .preset-select {
+            font-size: 0.75rem;
+            padding: 3px 6px;
+            border-radius: 4px;
+            background: var(--surface2);
+            color: var(--text);
+            border: 1px solid var(--border);
+        }
+
         .radio-group {
             display: flex;
             gap: 16px;
@@ -340,7 +351,6 @@
                 <div class="preview-wrapper result-preview" id="resultPreviewWrapper">
                     <canvas id="resultCanvas"></canvas>
                 </div>
-                <!-- 设置面板 -->
                 <div class="settings-group">
                     <div class="setting-row">
                         <span class="setting-label">描边模式</span>
@@ -352,11 +362,39 @@
                     </div>
                     <div class="setting-row">
                         <span class="setting-label">描边颜色</span>
-                        <input type="color" id="outlineColor" class="color-input" value="#000000">
+                        <div class="color-preset">
+                            <select id="outlinePreset" class="preset-select">
+                                <option value="auto_dark">自动（深色）</option>
+                                <option value="auto_darker">自动（更深）</option>
+                                <option value="auto_medium_dark">自动（中暗）</option>
+                                <option value="#000000">黑色</option>
+                                <option value="#404040">深灰</option>
+                                <option value="#808080">灰色</option>
+                                <option value="#FFFFFF">白色</option>
+                                <option value="#FF0000">红色</option>
+                                <option value="#0000FF">蓝色</option>
+                                <option value="#00FF00">绿色</option>
+                            </select>
+                            <input type="color" id="outlineColor" class="color-input" value="#000000">
+                        </div>
                     </div>
                     <div class="setting-row">
                         <span class="setting-label">背景颜色</span>
-                        <input type="color" id="bgColor" class="color-input" value="#888888">
+                        <div class="color-preset">
+                            <select id="bgPreset" class="preset-select">
+                                <option value="auto_light">自动（浅色）</option>
+                                <option value="auto_lighter">自动（更浅）</option>
+                                <option value="auto_medium_light">自动（中亮）</option>
+                                <option value="#FFFFFF">白色</option>
+                                <option value="#C0C0C0">浅灰</option>
+                                <option value="#808080">灰色</option>
+                                <option value="#404040">深灰</option>
+                                <option value="#000000">黑色</option>
+                                <option value="#FFD700">金黄</option>
+                                <option value="#87CEEB">天蓝</option>
+                            </select>
+                            <input type="color" id="bgColor" class="color-input" value="#888888">
+                        </div>
                     </div>
                     <div class="setting-row">
                         <span class="setting-label">倍率缩放</span>
