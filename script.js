@@ -404,4 +404,4 @@ fillBackgroundCheckbox.addEventListener('change', renderFinal);
 
 // 启动
 initPlaceholders();
-console.log('✅ 纹理工具已就绪（描边不扩展画布，32×32足矣）');
+console.log('Done');

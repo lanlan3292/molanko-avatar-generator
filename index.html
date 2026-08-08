@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>纹理区域拉伸工具</title>
+    <title>Molanko 头像生成器</title>
     <style>
         :root {
             --bg: #1e1e2e;
@@ -324,22 +324,21 @@
 <body>
     <div class="app-container">
         <div class="app-header">
-            <h1>🔧 纹理区域拉伸工具 <span class="badge">最近邻插值</span></h1>
-            <p class="subtitle">多区域拼接 · 描边 · 背景色 · 倍率缩放</p>
+            <h1>Molanko 头像生成器<span class="badge">Made by DeepSeek & lanlan3292</span></h1>
+            <p class="subtitle"></p>
         </div>
 
         <div class="main-content">
             <!-- 左侧：原图预览 -->
             <div class="panel">
-                <span class="panel-label">📥 原始图片 (64×64)</span>
+                <span class="panel-label">原始皮肤</span>
                 <div class="preview-wrapper source-preview">
                     <canvas id="sourcePreviewCanvas" width="64" height="64"></canvas>
                 </div>
                 <div class="info-row">
-                    <span class="info-tag">源区域：多个8×8块</span>
+                    <span class="info-tag">仅支持64*64分辨率PNG图像</span>
                 </div>
                 <div class="drop-zone" id="dropZone">
-                    <span class="icon">🖼️</span>
                     拖放图片到此处<br>或点击选择文件
                 </div>
                 <input type="file" id="fileInput" accept="image/*" style="display:none;">
@@ -347,7 +346,7 @@
 
             <!-- 右侧：结果预览与设置 -->
             <div class="panel">
-                <span class="panel-label">📤 结果预览</span>
+                <span class="panel-label">结果预览</span>
                 <div class="preview-wrapper result-preview" id="resultPreviewWrapper">
                     <canvas id="resultCanvas"></canvas>
                 </div>
@@ -424,8 +423,7 @@
                 </div>
             </div>
         </div>
-        <p class="footer-note">最近邻插值 · 像素硬边缘 · 透明背景保留</p>
-    </div>
+        <p class="footer-note">咕咕嘎嘎
     <script src="script.js"></script>
 </body>
 
