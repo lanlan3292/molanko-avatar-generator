@@ -1,6 +1,6 @@
 /**
  * script.js — 纹理区域拉伸 + 描边 + 背景色 + 倍率缩放 + 多自动颜色预设
- * 更新：描边不扩展画布，32×32画布足够；背景填充与画布尺寸解耦
+ * 更新：增加 Minecraft 皮肤获取集成，调用 mojang-api.js
  */
 
 // ========== DOM引用 ==========
@@ -20,6 +20,11 @@ const bgPresetSelect = document.getElementById('bgPreset');
 const scaleSelect = document.getElementById('scaleSelect');
 const upscale48Checkbox = document.getElementById('upscale48');
 const fillBackgroundCheckbox = document.getElementById('fillBackground');
+
+// 新增的 Minecraft 相关元素
+const playerInput = document.getElementById('playerInput');
+const fetchSkinBtn = document.getElementById('fetchSkinBtn');
+const fetchStatus = document.getElementById('fetchStatus');
 
 // ========== 状态 ==========
 let base32Canvas = null;
@@ -73,7 +78,7 @@ function createBaseTexture(sourceImage) {
 }
 
 function getAverageColor(canvas) {
-    const ctx = canvas.getContext('2d');
+    const ctx = canvas.getContext('2d', { willReadFrequently: true });
     const data = ctx.getImageData(0, 0, canvas.width, canvas.height).data;
     let r=0,g=0,b=0,count=0;
     for (let i=0; i<data.length; i+=4) {
@@ -177,7 +182,7 @@ function applyOutline(destCtx, contentCanvas, offsetX, offsetY, outlineRadius, o
     const pixels = imgData.data;
 
     const solidSet = new Set();
-    const srcCtx = contentCanvas.getContext('2d');
+    const srcCtx = contentCanvas.getContext('2d', { willReadFrequently: true });
     const srcData = srcCtx.getImageData(0, 0, contentCanvas.width, contentCanvas.height).data;
     const cw = contentCanvas.width, ch = contentCanvas.height;
     for (let y = 0; y < ch; y++) {
@@ -234,7 +239,6 @@ function buildFinalCanvas() {
         finalWidth = 48; finalHeight = 48;
         offsetX = 8; offsetY = 8;
     } else {
-        // 不提升时，画布固定为32×32，描边直接画在画布上，不扩展分辨率
         finalWidth = 32; finalHeight = 32;
         offsetX = 0; offsetY = 0;
     }
@@ -242,10 +246,9 @@ function buildFinalCanvas() {
     const canvas = document.createElement('canvas');
     canvas.width = finalWidth;
     canvas.height = finalHeight;
-    const ctx = canvas.getContext('2d');
+    const ctx = canvas.getContext('2d', { willReadFrequently: true });
     ctx.imageSmoothingEnabled = false;
 
-    // 仅在画布大于32×32 且 启用了填充背景 时才铺底色
     if (fillBg) {
         ctx.fillStyle = bgColor;
         ctx.fillRect(0, 0, finalWidth, finalHeight);
@@ -356,6 +359,43 @@ function downloadResult() {
     }, 'image/png', 1.0);
 }
 
+// ========== 新增：Minecraft 皮肤获取 ==========
+async function handleFetchSkin() {
+    const input = playerInput.value.trim();
+    if (!input) {
+        fetchStatus.textContent = '⚠️ 请输入玩家名或 UUID';
+        return;
+    }
+
+    fetchSkinBtn.disabled = true;
+    fetchStatus.textContent = '⏳ 正在获取皮肤...';
+    fetchStatus.style.color = 'var(--text2)';
+
+    try {
+        const img = await window.getMinecraftSkin(input);
+        // 成功加载后，交给现有流程
+        handleImage(img);
+        fetchStatus.textContent = '✅ 皮肤加载成功！';
+        fetchStatus.style.color = 'var(--success)';
+        playerInput.value = ''; // 清空输入
+    } catch (err) {
+        fetchStatus.textContent = `❌ ${err.message}`;
+        fetchStatus.style.color = 'var(--warning)';
+        console.error('获取皮肤失败:', err);
+    } finally {
+        fetchSkinBtn.disabled = false;
+    }
+}
+
+fetchSkinBtn.addEventListener('click', handleFetchSkin);
+// 允许按回车键触发
+playerInput.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') {
+        e.preventDefault();
+        handleFetchSkin();
+    }
+});
+
 // ========== 初始化 ==========
 function initPlaceholders() {
     sourcePreviewCanvas.width = 64;
@@ -369,7 +409,6 @@ function initPlaceholders() {
     sctx.fillText('导入图片', 32, 28);
     sctx.fillText('64×64', 32, 42);
 
-    // 初始预览画布尺寸根据默认设置（默认勾选提升至48×48，所以初始为48×48）
     resultCanvas.width = 48;
     resultCanvas.height = 48;
     resultCtx.clearRect(0, 0, 48, 48);

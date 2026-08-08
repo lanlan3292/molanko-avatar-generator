@@ -230,6 +230,45 @@
             margin-bottom: 6px;
         }
 
+        /* 新增：Minecraft 输入行 */
+        .mc-fetch-row {
+            display: flex;
+            gap: 8px;
+            width: 100%;
+            max-width: 320px;
+            margin-top: 4px;
+        }
+
+        .mc-fetch-row input {
+            flex: 1;
+            padding: 6px 10px;
+            border-radius: 6px;
+            border: 1px solid var(--border);
+            background: var(--bg);
+            color: var(--text);
+            font-size: 0.85rem;
+            outline: none;
+        }
+
+        .mc-fetch-row input:focus {
+            border-color: var(--accent);
+        }
+
+        .mc-fetch-row button {
+            padding: 6px 16px;
+            font-size: 0.85rem;
+            flex-shrink: 0;
+        }
+
+        .mc-status {
+            font-size: 0.75rem;
+            color: var(--text2);
+            text-align: center;
+            width: 100%;
+            max-width: 320px;
+            min-height: 1.2em;
+        }
+
         .settings-group {
             width: 100%;
             background: var(--bg);
@@ -332,6 +371,13 @@
             <!-- 左侧：原图预览 -->
             <div class="panel">
                 <span class="panel-label">原始皮肤</span>
+                <!-- 新增的 Minecraft 获取区域 -->
+                <div class="mc-fetch-row">
+                    <input type="text" id="playerInput" placeholder="玩家名或 UUID">
+                    <button class="btn btn-success" id="fetchSkinBtn">获取</button>
+                </div>
+                <div class="mc-status" id="fetchStatus"></div>
+
                 <div class="preview-wrapper source-preview">
                     <canvas id="sourcePreviewCanvas" width="64" height="64"></canvas>
                 </div>
@@ -423,7 +469,11 @@
                 </div>
             </div>
         </div>
-        <p class="footer-note">咕咕嘎嘎
+        <p class="footer-note">咕咕嘎嘎</p>
+    </div>
+
+    <!-- 新增的 API 模块，必须放在 script.js 之前 -->
+    <script src="mojang-api.js"></script>
     <script src="script.js"></script>
 </body>
 
