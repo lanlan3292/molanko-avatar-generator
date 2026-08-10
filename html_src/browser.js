@@ -8,21 +8,16 @@
  *   2. 可选：mojang-api.js（提供 window.getMinecraftSkin）
  */
 
+import {
+  processTexture,
+  resolveOutlineColor,
+  resolveBgColor,
+  getAverageColor
+} from '../molanko-avatar-generator/src/main.js';
+
+
 (function () {
   'use strict';
-
-  // ========== 引入纯逻辑 ==========
-  const {
-    processTexture,
-    resolveOutlineColor,
-    resolveBgColor,
-    getAverageColor
-  } = window.TextureProcessor || {};
-
-  if (!processTexture) {
-    console.error('TextureProcessor 未加载，请先引入 texture-processor.js');
-    return;
-  }
 
   // ========== 浏览器 createCanvas ==========
   function createCanvas(w, h) {

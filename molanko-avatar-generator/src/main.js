@@ -282,8 +282,7 @@ function processTexture(sourceImage, options = {}) {
 }
 
 // 导出
-if (typeof module !== 'undefined' && module.exports) {
-  module.exports = {
+export {
     processTexture,
     createBaseTexture,
     buildFinalCanvas,
@@ -293,17 +292,20 @@ if (typeof module !== 'undefined' && module.exports) {
     bgGenerators,
     resolveOutlineColor,
     resolveBgColor
-  };
-} else if (typeof window !== 'undefined') {
-  window.TextureProcessor = {
-    processTexture,
-    createBaseTexture,
-    buildFinalCanvas,
-    applyScale,
-    getAverageColor,
-    outlineGenerators,
-    bgGenerators,
-    resolveOutlineColor,
-    resolveBgColor
-  };
+};
+
+
+// 浏览器兼容旧调用方式
+if (typeof window !== 'undefined') {
+    window.TextureProcessor = {
+        processTexture,
+        createBaseTexture,
+        buildFinalCanvas,
+        applyScale,
+        getAverageColor,
+        outlineGenerators,
+        bgGenerators,
+        resolveOutlineColor,
+        resolveBgColor
+    };
 }

@@ -1,12 +1,12 @@
 {
   "name": "molanko-avatar-generator",
-  "version": "0.0.10",
+  "version": "0.0.11",
   "type": "module",
   "exports": {
-    ".": {
-      "browser": "./src/browser.js",
-      "default": "./src/main.js"
-    },
-    "./node": "./src/node.js"
+    ".": "./molanko-avatar-generator/src/main.js",
+    "./node": "./molanko-avatar-generator/src/node.js"
+  },
+  "dependencies": {
+    "@napi-rs/canvas": "^1.0.5"
   }
 }
