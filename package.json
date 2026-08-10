@@ -1,0 +1,12 @@
+{
+  "name": "molanko-avatar-generator",
+  "version": "0.0.10",
+  "type": "module",
+  "exports": {
+    ".": {
+      "browser": "./src/browser.js",
+      "default": "./src/main.js"
+    },
+    "./node": "./src/node.js"
+  }
+}

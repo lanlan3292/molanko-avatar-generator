@@ -1,0 +1,29 @@
+import fs from "node:fs";
+
+import {
+    processTextureFile
+} from "molanko-avatar-generator/node";
+
+
+const canvas = await processTextureFile(
+    "./example.png",
+    {
+        scale: 4,
+
+        outlineMode: 1,
+        outlineColor: "auto_dark",
+
+        bgColor: "auto_light",
+
+        fillBackground: true
+    }
+);
+
+
+fs.writeFileSync(
+    "./output.png",
+    canvas.toBuffer("image/png")
+);
+
+
+console.log("生成完成");
