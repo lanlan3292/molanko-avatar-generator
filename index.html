@@ -463,6 +463,13 @@
                             <option value="50">50x</option>
                         </select>
                     </div>
+                    <div class="setting-row">
+                        <span class="setting-label">处理引擎</span>
+                        <select id="engineSelect" class="preset-select">
+                            <option value="new">新版 (main.js)</option>
+                            <option value="old">旧版 (main_old.js)</option>
+                        </select>
+                    </div>
                 </div>
                 <div class="btn-row">
                     <button class="btn btn-success" id="downloadBtn" disabled>💾 下载结果PNG</button>
@@ -473,7 +480,6 @@
     </div>
 
     <!-- 新增的 API 模块，必须放在 script.js 之前 -->
-    <script type="module" src="./molanko-avatar-generator/src/main.js"></script>
     <script src="./html_src/mojang-api.js"></script>
     <script type="module" src="./html_src/browser.js"></script>
 </body>
