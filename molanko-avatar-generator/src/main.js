@@ -131,11 +131,11 @@ function drawNearestNeighbor(destCtx, srcData, srcW, srcH, dx, dy, dw, dh, overl
   const invAlpha = hasOverlay ? (1 - overlayAlpha) : 1;
 
   for (let py = y0; py < y1; py++) {
-    const srcY = Math.min(srcH - 1, Math.max(0, Math.floor((py - dy) * scaleY)));
+    const srcY = Math.floor((py - dy + 0.5) * scaleY);
     const srcRow = srcY * srcW;
 
     for (let px = x0; px < x1; px++) {
-      const srcX = Math.min(srcW - 1, Math.max(0, Math.floor((px - dx) * scaleX)));
+      const srcX = Math.floor((px - dx + 0.5) * scaleX)
       const si = (srcRow + srcX) * 4;
       const di = ((py - y0) * (x1 - x0) + (px - x0)) * 4;
 
