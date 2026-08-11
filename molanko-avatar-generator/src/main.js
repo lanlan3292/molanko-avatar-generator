@@ -507,8 +507,20 @@ function processTexture(sourceImage, options = {}) {
     );
   }
 
+// 1. 创建 64x16 临时画布截取头部区域
+  const headCanvas = createCanvas(64, 16);
+  const hctx = get2dContext(headCanvas, { willReadFrequently: true });
+  hctx.drawImage(sourceImage, 0, 0, 64, 16, 0, 0, 64, 16);
+
+  // 2. 计算 64x16 区域的平均色
+  const headAvgColor = getAverageColor(headCanvas);
+
+  // 3. 生成基础 32x32 纹理[cite: 3]
   const base32 = createBaseTexture(sourceImage, createCanvas);
-  const finalBase = buildFinalCanvas(base32, options, createCanvas);
+
+  // 4. 将 headAvgColor 传入 buildFinalCanvas[cite: 3]
+  const finalBase = buildFinalCanvas(base32, options, createCanvas, headAvgColor);
+  
   const scale = options.scale || 1;
   return applyScale(finalBase, scale, createCanvas);
 }

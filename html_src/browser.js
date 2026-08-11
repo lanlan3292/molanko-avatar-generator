@@ -16,27 +16,27 @@
   }
 
   // ========== DOM 引用 ==========
-  const fileInput          = document.getElementById('fileInput');
-  const dropZone           = document.getElementById('dropZone');
+  const fileInput = document.getElementById('fileInput');
+  const dropZone = document.getElementById('dropZone');
   const sourcePreviewCanvas = document.getElementById('sourcePreviewCanvas');
-  const sourcePreviewCtx   = sourcePreviewCanvas.getContext('2d');
-  const resultCanvas       = document.getElementById('resultCanvas');
-  const resultCtx          = resultCanvas.getContext('2d');
-  const downloadBtn        = document.getElementById('downloadBtn');
+  const sourcePreviewCtx = sourcePreviewCanvas.getContext('2d');
+  const resultCanvas = document.getElementById('resultCanvas');
+  const resultCtx = resultCanvas.getContext('2d');
+  const downloadBtn = document.getElementById('downloadBtn');
 
-  const outlineRadios      = document.getElementsByName('outline');
-  const outlineColorInput  = document.getElementById('outlineColor');
+  const outlineRadios = document.getElementsByName('outline');
+  const outlineColorInput = document.getElementById('outlineColor');
   const outlinePresetSelect = document.getElementById('outlinePreset');
-  const bgColorInput       = document.getElementById('bgColor');
-  const bgPresetSelect     = document.getElementById('bgPreset');
-  const scaleSelect        = document.getElementById('scaleSelect');
-  const upscale48Checkbox  = document.getElementById('upscale48');
+  const bgColorInput = document.getElementById('bgColor');
+  const bgPresetSelect = document.getElementById('bgPreset');
+  const scaleSelect = document.getElementById('scaleSelect');
+  const upscale48Checkbox = document.getElementById('upscale48');
   const fillBackgroundCheckbox = document.getElementById('fillBackground');
 
   // Minecraft 相关
-  const playerInput  = document.getElementById('playerInput');
+  const playerInput = document.getElementById('playerInput');
   const fetchSkinBtn = document.getElementById('fetchSkinBtn');
-  const fetchStatus  = document.getElementById('fetchStatus');
+  const fetchStatus = document.getElementById('fetchStatus');
 
   // ========== 引擎选择 ==========
   const engineSelect = document.getElementById('engineSelect');
@@ -97,7 +97,7 @@
         const result = processTexture(currentSourceImage, options);
 
         currentResultCanvas = result;
-        resultCanvas.width  = result.width;
+        resultCanvas.width = result.width;
         resultCanvas.height = result.height;
         resultCtx.imageSmoothingEnabled = false;
         resultCtx.clearRect(0, 0, result.width, result.height);
@@ -113,7 +113,7 @@
 
     // ========== 源图预览 ==========
     function drawSourcePreview(img) {
-      sourcePreviewCanvas.width  = img.width;
+      sourcePreviewCanvas.width = img.width;
       sourcePreviewCanvas.height = img.height;
       sourcePreviewCtx.imageSmoothingEnabled = false;
       sourcePreviewCtx.drawImage(img, 0, 0);
@@ -137,26 +137,30 @@
     }
 
     // ========== 预设颜色同步 ==========
+
+    function getHeadAverageColor(img) {
+      // 只截取头部 64x16 区域计算平均色[cite: 3]
+      const tmp = createCanvas(64, 16);
+      const tctx = tmp.getContext('2d');
+      tctx.drawImage(img, 0, 0, 64, 16, 0, 0, 64, 16);
+      return getAverageColor(tmp);
+    }
+
     function applyOutlinePreset(value) {
       if (value.startsWith('auto_') && currentSourceImage) {
-        const tmp = createCanvas(currentSourceImage.width, currentSourceImage.height);
-        const tctx = tmp.getContext('2d');
-        tctx.drawImage(currentSourceImage, 0, 0);
-        const avg = getAverageColor(tmp);
+        const avg = getHeadAverageColor(currentSourceImage);
+        // 解析出有效的 #RRGGBB 字符串赋予 input[cite: 2, 3]
         outlineColorInput.value = resolveOutlineColor(value, avg);
-      } else {
+      } else if (value) {
         outlineColorInput.value = value;
       }
     }
 
     function applyBgPreset(value) {
       if (value.startsWith('auto_') && currentSourceImage) {
-        const tmp = createCanvas(currentSourceImage.width, currentSourceImage.height);
-        const tctx = tmp.getContext('2d');
-        tctx.drawImage(currentSourceImage, 0, 0);
-        const avg = getAverageColor(tmp);
+        const avg = getHeadAverageColor(currentSourceImage);
         bgColorInput.value = resolveBgColor(value, avg);
-      } else {
+      } else if (value) {
         bgColorInput.value = value;
       }
     }
@@ -235,10 +239,10 @@
 
     // ========== 初始化占位 ==========
     function initPlaceholders() {
-      sourcePreviewCanvas.width  = 64;
+      sourcePreviewCanvas.width = 64;
       sourcePreviewCanvas.height = 64;
 
-      resultCanvas.width  = 48;
+      resultCanvas.width = 48;
       resultCanvas.height = 48;
       resultCtx.clearRect(0, 0, 48, 48);
 
