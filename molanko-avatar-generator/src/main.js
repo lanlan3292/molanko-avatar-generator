@@ -402,7 +402,11 @@ function applyOutline(destCtx, contentCanvas, offsetX, offsetY, outlineRadius, o
 /**
  * 构建最终画布（背景 + 内容 + 可选轮廓）
  */
-function buildFinalCanvas(base32Canvas, options, createCanvas) {
+/**
+ * 构建最终画布（背景 + 内容 + 可选轮廓）
+ */
+// 1. 在参数列表中加上 customAvg = null
+function buildFinalCanvas(base32Canvas, options, createCanvas, customAvg = null) {
   const {
     outlineMode = 0,
     outlineColor = '#000000',
@@ -411,7 +415,9 @@ function buildFinalCanvas(base32Canvas, options, createCanvas) {
     fillBackground = true
   } = options;
 
-  const avg = getAverageColor(base32Canvas);
+  // 2. 优先使用传入的 customAvg（即 64x16 的头部颜色），如果没有才回退到 32x32[cite: 6]
+  const avg = customAvg || getAverageColor(base32Canvas);
+  
   const finalOutlineColor = resolveOutlineColor(outlineColor, avg);
   const finalBgColor = resolveBgColor(bgColor, avg);
 
@@ -436,7 +442,7 @@ function buildFinalCanvas(base32Canvas, options, createCanvas) {
     ctx.fillRect(0, 0, finalWidth, finalHeight);
   }
 
-  // 1:1 绘制，原生 drawImage 在所有环境一致
+  // 1:1 绘制，原生 drawImage 在所有环境一致[cite: 6]
   ctx.drawImage(base32Canvas, offsetX, offsetY);
 
   if (outlineMode > 0) {
