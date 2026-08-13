@@ -121,7 +121,7 @@
 
     // ========== 处理图片入口 ==========
     function handleImage(img) {
-      if (img.width <= 63 || img.height <= 31) {
+      if (img.width <= 31 || img.height <= 15) {
         alert(`图片尺寸不足！当前：${img.width}×${img.height}，至少需要 64×64`);
         return;
       }

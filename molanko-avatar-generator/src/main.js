@@ -507,7 +507,7 @@ function processTexture(sourceImage, options = {}) {
     throw new Error('sourceImage 必须是有效的 Image / Canvas 对象');
   }
 
-  if (sourceImage.width <= 63 || sourceImage.height <= 31) {
+  if (sourceImage.width <= 31 || sourceImage.height <= 15) {
     throw new Error(
       `图片尺寸不足！当前：${sourceImage.width}×${sourceImage.height}，至少需要 64×64`
     );
