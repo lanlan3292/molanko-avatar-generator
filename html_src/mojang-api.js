@@ -36,7 +36,7 @@
         if (isUuid(input)) {
             // 是 UUID → 使用 crafatar.com（官方皮肤镜像）
             const cleanUuid = input.replace(/-/g, '');
-            skinUrl = `https://crafatar.com/skins/${cleanUuid}`;
+            skinUrl = `https://mc-heads.net/skin/${cleanUuid}`;
         } else {
             // 是玩家名 → 使用 mc-heads.net（支持 CORS）
             skinUrl = `https://mc-heads.net/skin/${encodeURIComponent(input)}`;
