@@ -1,6 +1,6 @@
 /**
  * mojang-api.js – 独立的 Minecraft 皮肤获取模块
- * 使用 mc-heads.net 和 crafatar.com 避免 CORS 限制
+ * 使用 mc-heads.net 避免 CORS 限制
  */
 (function() {
     'use strict';
@@ -16,7 +16,7 @@
             const img = new Image();
             img.crossOrigin = 'anonymous'; // 启用跨域
             img.onload = () => resolve(img);
-            img.onerror = () => reject(new Error('加载皮肤图片失败，请检查网络或图片服务是否可用'));
+            img.onerror = () => reject(new Error('请检查网络或图片服务是否可用'));
             img.src = url;
         });
     }
