@@ -192,11 +192,14 @@ function drawStretch(ctx, srcImg, sx, sy, sw, sh, dx, dy, dw, dh, overlayAlpha, 
 
 /**
  * 从 64×64（或更大）皮肤生成 32×32 基础纹理
+ * @param {boolean} [applySideShade=true] 是否对侧面部分叠加半透明黑色遮罩
  */
-function createBaseTexture(sourceImage, createCanvas) {
+function createBaseTexture(sourceImage, createCanvas, applySideShade = true) {
   const canvas = createCanvas(32, 32);
   const ctx = get2dContext(canvas, { willReadFrequently: true });
-  const alpha = 76 / 255;
+
+  // 如果不需要侧面遮罩，则 alpha 设为 0；否则使用原来的 76/255
+  const alpha = applySideShade ? 76 / 255 : 0;
 
   // 正面 / 侧面等部位
   drawStretch(ctx, sourceImage, 56, 8, 8, 8, 10, 7, 18, 18, 0, createCanvas);
@@ -226,6 +229,7 @@ function createBaseTexture(sourceImage, createCanvas) {
   }
   fctx.putImageData(dstData, 0, 0);
 
+  // 注意：翻转后的绘制也使用相同的 alpha（侧面遮罩）
   drawStretch(fctx, sourceImage, 8, 8, 8, 8, 11, 8, 16, 16, 0, createCanvas);
   drawStretch(fctx, sourceImage, 0, 8, 8, 8, 5, 8, 6, 16, alpha, createCanvas);
   drawStretch(fctx, sourceImage, 40, 8, 8, 8, 10, 7, 18, 18, 0, createCanvas);
@@ -411,7 +415,7 @@ function buildFinalCanvas(base32Canvas, options, createCanvas, customAvg = null)
     fillBackground = true
   } = options;
 
-  // 2. 优先使用传入的 customAvg（即 64x16 的头部颜色），如果没有才回退到 32x32[cite: 6]
+  // 优先使用传入的 customAvg，如果没有才回退到 32x32
   const avg = customAvg || getAverageColor(base32Canvas);
 
   const finalOutlineColor = resolveOutlineColor(outlineColor, avg);
@@ -438,7 +442,7 @@ function buildFinalCanvas(base32Canvas, options, createCanvas, customAvg = null)
     ctx.fillRect(0, 0, finalWidth, finalHeight);
   }
 
-  // 1:1 绘制，原生 drawImage 在所有环境一致[cite: 6]
+  // 1:1 绘制，原生 drawImage 在所有环境一致
   ctx.drawImage(base32Canvas, offsetX, offsetY);
 
   if (outlineMode > 0) {
@@ -513,18 +517,16 @@ function processTexture(sourceImage, options = {}) {
   // ---- 修改开始：优先使用用户传入的平均色 ----
   let headAvgColor = options.averageColor;
 
-  // 如果用户没有提供，则自动计算头部 64×16 区域的平均色
+  // 如果用户没有提供，则从没有半透明黑色遮罩、没有背景、没有描边的 32×32 基础纹理中获取
   if (!headAvgColor) {
-    const headCanvas = createCanvas(64, 8);
-    const hctx = get2dContext(headCanvas, { willReadFrequently: true });
-    hctx.drawImage(sourceImage, 0, 8, 64, 8, 0, 0, 64, 8);
-    headAvgColor = getAverageColor(headCanvas);
+    const colorBase32 = createBaseTexture(sourceImage, createCanvas, false);
+    headAvgColor = getAverageColor(colorBase32);
   }
 
-  // 3. 生成基础 32x32 纹理[cite: 3]
+  // 生成最终输出的基础纹理（保留侧面暗部遮罩）
   const base32 = createBaseTexture(sourceImage, createCanvas);
 
-  // 4. 将 headAvgColor 传入 buildFinalCanvas[cite: 3]
+  // 将 headAvgColor 传入 buildFinalCanvas
   const finalBase = buildFinalCanvas(base32, options, createCanvas, headAvgColor);
 
   const scale = options.scale || 1;

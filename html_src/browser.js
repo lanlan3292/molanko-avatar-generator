@@ -33,6 +33,10 @@
   const upscale48Checkbox = document.getElementById('upscale48');
   const fillBackgroundCheckbox = document.getElementById('fillBackground');
 
+  // 平均色相关 DOM
+  const autoAverageCheckbox = document.getElementById('autoAverage');
+  const averageColorInput = document.getElementById('averageColorInput');
+
   // Minecraft 相关
   const playerInput = document.getElementById('playerInput');
   const fetchSkinBtn = document.getElementById('fetchSkinBtn');
@@ -46,6 +50,18 @@
     localStorage.setItem('engineChoice', e.target.value);
     location.reload(); // 刷新页面以加载新引擎
   });
+
+  // ========== 工具函数 ==========
+  function hexToRgb(hex) {
+    const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+    if (result) {
+      return [parseInt(result[1], 16), parseInt(result[2], 16), parseInt(result[3], 16)];
+    }
+    return [0, 0, 0];
+  }
+  function rgbToHex(r, g, b) {
+    return '#' + [r, g, b].map(v => Math.round(v).toString(16).padStart(2, '0')).join('');
+  }
 
   // ========== 动态导入核心引擎 ==========
   (async function init() {
@@ -77,6 +93,12 @@
 
     // ========== 读取当前 UI 选项 ==========
     function getOptions() {
+      let averageColor = null;
+      if (!autoAverageCheckbox.checked) {
+        const hex = averageColorInput.value;
+        const rgb = hexToRgb(hex);
+        averageColor = { r: rgb[0], g: rgb[1], b: rgb[2] };
+      }
       return {
         createCanvas,
         outlineMode: parseInt(document.querySelector('input[name="outline"]:checked')?.value || '0', 10),
@@ -84,7 +106,8 @@
         bgColor: bgColorInput.value,
         upscale48: upscale48Checkbox.checked,
         fillBackground: fillBackgroundCheckbox.checked,
-        scale: parseInt(scaleSelect.value, 10) || 1
+        scale: parseInt(scaleSelect.value, 10) || 1,
+        averageColor // 新增：手动指定的平均色
       };
     }
 
@@ -119,6 +142,50 @@
       sourcePreviewCtx.drawImage(img, 0, 0);
     }
 
+    // ========== 计算头部平均色 ==========
+    function getHeadAverageColor(img) {
+      const tmp = createCanvas(64, 8);
+      const tctx = tmp.getContext('2d');
+      tctx.drawImage(img, 0, 8, 64, 8, 0, 0, 64, 8);
+      return getAverageColor(tmp);
+    }
+
+    // ========== 获取当前有效的平均色 ==========
+    function getCurrentAverageColor() {
+      if (autoAverageCheckbox.checked) {
+        // 自动：从头部计算
+        if (currentSourceImage) {
+          return getHeadAverageColor(currentSourceImage);
+        } else {
+          return { r: 128, g: 128, b: 128 }; // 默认
+        }
+      } else {
+        // 手动：从颜色输入框读取
+        const hex = averageColorInput.value;
+        const rgb = hexToRgb(hex);
+        return { r: rgb[0], g: rgb[1], b: rgb[2] };
+      }
+    }
+
+    // ========== 预设颜色同步 ==========
+    function applyOutlinePreset(value, avg) {
+      if (!avg) avg = getCurrentAverageColor();
+      if (value.startsWith('auto_') && currentSourceImage) {
+        outlineColorInput.value = resolveOutlineColor(value, avg);
+      } else if (value) {
+        outlineColorInput.value = value;
+      }
+    }
+
+    function applyBgPreset(value, avg) {
+      if (!avg) avg = getCurrentAverageColor();
+      if (value.startsWith('auto_') && currentSourceImage) {
+        bgColorInput.value = resolveBgColor(value, avg);
+      } else if (value) {
+        bgColorInput.value = value;
+      }
+    }
+
     // ========== 处理图片入口 ==========
     function handleImage(img) {
       if (img.width <= 31 || img.height <= 15) {
@@ -129,40 +196,17 @@
       currentSourceImage = img;
       drawSourcePreview(img);
 
-      // 根据当前预设刷新颜色输入框
+      // 如果手动模式，将平均色输入框设为头部平均色（作为初始值）
+      if (!autoAverageCheckbox.checked) {
+        const avg = getHeadAverageColor(img);
+        averageColorInput.value = rgbToHex(avg.r, avg.g, avg.b);
+      }
+
+      // 应用预设（使用当前平均色）
       applyOutlinePreset(outlinePresetSelect.value);
       applyBgPreset(bgPresetSelect.value);
 
       renderFinal();
-    }
-
-    // ========== 预设颜色同步 ==========
-
-    function getHeadAverageColor(img) {
-      // 只截取头部 64x16 区域计算平均色[cite: 3]
-      const tmp = createCanvas(64, 8);
-      const tctx = tmp.getContext('2d');
-      tctx.drawImage(img, 0, 8, 64, 8, 0, 0, 64, 8);
-      return getAverageColor(tmp);
-    }
-
-    function applyOutlinePreset(value) {
-      if (value.startsWith('auto_') && currentSourceImage) {
-        const avg = getHeadAverageColor(currentSourceImage);
-        // 解析出有效的 #RRGGBB 字符串赋予 input[cite: 2, 3]
-        outlineColorInput.value = resolveOutlineColor(value, avg);
-      } else if (value) {
-        outlineColorInput.value = value;
-      }
-    }
-
-    function applyBgPreset(value) {
-      if (value.startsWith('auto_') && currentSourceImage) {
-        const avg = getHeadAverageColor(currentSourceImage);
-        bgColorInput.value = resolveBgColor(value, avg);
-      } else if (value) {
-        bgColorInput.value = value;
-      }
     }
 
     // ========== 文件加载 ==========
@@ -248,6 +292,9 @@
 
       downloadBtn.disabled = true;
       downloadBtn.textContent = '💾 下载结果PNG（需先导入图片）';
+
+      // 平均色输入框默认禁用（自动模式）
+      averageColorInput.disabled = true;
     }
 
     // ========== 事件绑定 ==========
@@ -262,6 +309,30 @@
 
     outlineColorInput.addEventListener('input', renderFinal);
     bgColorInput.addEventListener('input', renderFinal);
+
+    // 平均色：自动/手动切换
+    autoAverageCheckbox.addEventListener('change', () => {
+      const isAuto = autoAverageCheckbox.checked;
+      averageColorInput.disabled = isAuto;
+      // 如果切换到手动模式，将当前皮肤的平均色填入颜色选择器
+      if (!isAuto && currentSourceImage) {
+        const avg = getHeadAverageColor(currentSourceImage);
+        averageColorInput.value = rgbToHex(avg.r, avg.g, avg.b);
+      }
+      // 重新应用预设（因为平均色可能变化）
+      applyOutlinePreset(outlinePresetSelect.value);
+      applyBgPreset(bgPresetSelect.value);
+      renderFinal();
+    });
+
+    averageColorInput.addEventListener('input', () => {
+      // 手动模式下，平均色改变，需要更新自动预设的颜色值
+      if (!autoAverageCheckbox.checked) {
+        applyOutlinePreset(outlinePresetSelect.value);
+        applyBgPreset(bgPresetSelect.value);
+        renderFinal();
+      }
+    });
 
     dropZone.addEventListener('click', () => fileInput.click());
     fileInput.addEventListener('change', (e) => {

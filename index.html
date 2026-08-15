@@ -453,6 +453,16 @@
                             <input type="color" id="bgColor" class="color-input" value="#888888">
                         </div>
                     </div>
+                    <!-- 新增：平均色设置行 -->
+                    <div class="setting-row">
+                        <span class="setting-label">平均色 <span style="font-size:0.65rem;color:var(--text2);font-weight:400;">(影响自动颜色)</span></span>
+                        <div class="color-preset" style="gap:8px;">
+                            <label style="display:flex;align-items:center;gap:4px;font-size:0.8rem;cursor:pointer;white-space:nowrap;">
+                                <input type="checkbox" id="autoAverage" checked> 自动
+                            </label>
+                            <input type="color" id="averageColorInput" class="color-input" value="#808080" disabled>
+                        </div>
+                    </div>
                     <div class="setting-row">
                         <span class="setting-label">倍率缩放</span>
                         <select id="scaleSelect">
