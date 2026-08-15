@@ -1,0 +1,497 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Molanko 头像生成器</title>
+    <style>
+        :root {
+            --bg: #1e1e2e;
+            --surface: #282840;
+            --surface2: #303050;
+            --text: #e0e0e0;
+            --text2: #b0b0c0;
+            --accent: #7c8cf8;
+            --accent-hover: #9ba8ff;
+            --warning: #f0c060;
+            --success: #60d080;
+            --border: #3a3a55;
+            --radius: 10px;
+            --shadow: 0 4px 24px rgba(0, 0, 0, 0.4);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', 'Noto Sans SC', system-ui, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+            background-image: radial-gradient(ellipse at 30% 20%, rgba(120, 130, 240, 0.08) 0%, transparent 60%),
+                radial-gradient(ellipse at 70% 70%, rgba(100, 200, 150, 0.05) 0%, transparent 60%);
+        }
+
+        .app-container {
+            width: 100%;
+            max-width: 950px;
+            background: var(--surface);
+            border-radius: 16px;
+            padding: 32px 28px 24px;
+            box-shadow: var(--shadow);
+            border: 1px solid var(--border);
+        }
+
+        .app-header {
+            text-align: center;
+            margin-bottom: 24px;
+        }
+
+        .app-header h1 {
+            font-size: 1.7rem;
+            font-weight: 700;
+            color: #fff;
+            margin-bottom: 6px;
+        }
+
+        .app-header .subtitle {
+            font-size: 0.9rem;
+            color: var(--text2);
+        }
+
+        .badge {
+            display: inline-block;
+            background: var(--accent);
+            color: #fff;
+            font-size: 0.7rem;
+            font-weight: 600;
+            padding: 3px 10px;
+            border-radius: 20px;
+            margin-left: 8px;
+        }
+
+        .main-content {
+            display: flex;
+            gap: 24px;
+            flex-wrap: wrap;
+            justify-content: center;
+            align-items: flex-start;
+        }
+
+        .panel {
+            flex: 1 1 300px;
+            min-width: 280px;
+            max-width: 420px;
+            background: var(--surface2);
+            border-radius: var(--radius);
+            padding: 18px;
+            border: 1px solid var(--border);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 14px;
+        }
+
+        .panel-label {
+            font-size: 0.85rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            color: var(--text2);
+        }
+
+        .preview-wrapper {
+            position: relative;
+            border-radius: 6px;
+            overflow: hidden;
+            box-shadow: 0 2px 12px rgba(0, 0, 0, 0.5);
+            background: #1a1a28;
+            background-image: linear-gradient(45deg, #2a2a3a 25%, transparent 25%),
+                linear-gradient(-45deg, #2a2a3a 25%, transparent 25%),
+                linear-gradient(45deg, transparent 75%, #2a2a3a 75%),
+                linear-gradient(-45deg, transparent 75%, #2a2a3a 75%);
+            background-size: 16px 16px;
+            background-position: 0 0, 0 8px, 8px -8px, -8px 0px;
+            line-height: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .preview-wrapper.source-preview canvas {
+            width: 320px;
+            height: 320px;
+        }
+
+        .preview-wrapper.result-preview canvas {
+            width: 320px;
+            height: 320px;
+        }
+
+        .preview-wrapper canvas {
+            display: block;
+            image-rendering: pixelated;
+            image-rendering: crisp-edges;
+        }
+
+        .info-row {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+            justify-content: center;
+            font-size: 0.78rem;
+            color: var(--text2);
+        }
+
+        .info-tag {
+            background: var(--bg);
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-family: 'SF Mono', 'Cascadia Code', 'Consolas', 'Menlo', monospace;
+            font-size: 0.73rem;
+            white-space: nowrap;
+            border: 1px solid var(--border);
+        }
+
+        .btn-row {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            justify-content: center;
+            margin-top: 6px;
+        }
+
+        .btn {
+            padding: 10px 22px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            letter-spacing: 0.03em;
+            transition: all 0.2s;
+            font-family: inherit;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .btn-success {
+            background: #3a8050;
+            color: #fff;
+            box-shadow: 0 2px 8px rgba(80, 180, 100, 0.25);
+        }
+
+        .btn-success:hover {
+            background: #4a9660;
+            box-shadow: 0 4px 14px rgba(80, 180, 100, 0.4);
+            transform: translateY(-1px);
+        }
+
+        .btn-success:disabled {
+            background: #3a3a50;
+            color: #777;
+            cursor: not-allowed;
+            box-shadow: none;
+        }
+
+        .drop-zone {
+            border: 2px dashed var(--border);
+            border-radius: var(--radius);
+            padding: 18px 20px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.25s;
+            color: var(--text2);
+            font-size: 0.85rem;
+            background: transparent;
+            width: 100%;
+            max-width: 320px;
+        }
+
+        .drop-zone:hover,
+        .drop-zone.drag-over {
+            border-color: var(--accent);
+            background: rgba(120, 140, 248, 0.06);
+            color: #fff;
+        }
+
+        .drop-zone .icon {
+            font-size: 2rem;
+            display: block;
+            margin-bottom: 6px;
+        }
+
+        /* 新增：Minecraft 输入行 */
+        .mc-fetch-row {
+            display: flex;
+            gap: 8px;
+            width: 100%;
+            max-width: 320px;
+            margin-top: 4px;
+        }
+
+        .mc-fetch-row input {
+            flex: 1;
+            padding: 6px 10px;
+            border-radius: 6px;
+            border: 1px solid var(--border);
+            background: var(--bg);
+            color: var(--text);
+            font-size: 0.85rem;
+            outline: none;
+        }
+
+        .mc-fetch-row input:focus {
+            border-color: var(--accent);
+        }
+
+        .mc-fetch-row button {
+            padding: 6px 16px;
+            font-size: 0.85rem;
+            flex-shrink: 0;
+        }
+
+        .mc-status {
+            font-size: 0.75rem;
+            color: var(--text2);
+            text-align: center;
+            width: 100%;
+            max-width: 320px;
+            min-height: 1.2em;
+        }
+
+        .settings-group {
+            width: 100%;
+            background: var(--bg);
+            border-radius: var(--radius);
+            padding: 16px;
+            border: 1px solid var(--border);
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .setting-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .setting-label {
+            font-size: 0.8rem;
+            color: var(--text2);
+            font-weight: 500;
+        }
+
+        .color-input {
+            width: 40px;
+            height: 28px;
+            padding: 0;
+            border: 1px solid var(--border);
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        .color-preset {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .preset-select {
+            font-size: 0.75rem;
+            padding: 3px 6px;
+            border-radius: 4px;
+            background: var(--surface2);
+            color: var(--text);
+            border: 1px solid var(--border);
+        }
+
+        .radio-group {
+            display: flex;
+            gap: 16px;
+        }
+
+        .radio-group label {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            font-size: 0.8rem;
+            cursor: pointer;
+        }
+
+        select,
+        input[type="checkbox"] {
+            accent-color: var(--accent);
+        }
+
+        .footer-note {
+            text-align: center;
+            margin-top: 20px;
+            font-size: 0.72rem;
+            color: #666;
+        }
+
+        @media (max-width:700px) {
+            .app-container {
+                padding: 18px 12px 14px;
+            }
+
+            .main-content {
+                gap: 14px;
+            }
+
+            .panel {
+                padding: 12px;
+                gap: 8px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="app-container">
+        <div class="app-header">
+            <h1>Molanko 头像生成器<span class="badge">Made by DeepSeek & lanlan3292</span></h1>
+            <p class="subtitle"></p>
+        </div>
+
+        <div class="main-content">
+            <!-- 左侧：原图预览 -->
+            <div class="panel">
+                <span class="panel-label">原始皮肤</span>
+                <!-- 新增的 Minecraft 获取区域 -->
+                <div class="mc-fetch-row">
+                    <input type="text" id="playerInput" placeholder="玩家名或 UUID">
+                    <button class="btn btn-success" id="fetchSkinBtn">获取</button>
+                </div>
+                <div class="mc-status" id="fetchStatus"></div>
+
+                <div class="preview-wrapper source-preview">
+                    <canvas id="sourcePreviewCanvas" width="64" height="64"></canvas>
+                </div>
+                <div class="info-row">
+                    <span class="info-tag">仅支持64*64分辨率PNG图像</span>
+                </div>
+                <div class="drop-zone" id="dropZone">
+                    拖放图片到此处<br>或点击选择文件
+                </div>
+                <input type="file" id="fileInput" accept="image/*" style="display:none;">
+            </div>
+
+            <!-- 右侧：结果预览与设置 -->
+            <div class="panel">
+                <span class="panel-label">结果预览</span>
+                <div class="preview-wrapper result-preview" id="resultPreviewWrapper">
+                    <canvas id="resultCanvas"></canvas>
+                </div>
+                <div class="settings-group">
+                    <div class="setting-row">
+                        <span class="setting-label">描边模式</span>
+                        <div class="radio-group" id="outlineMode">
+                            <label><input type="radio" name="outline" value="0" checked> 无</label>
+                            <label><input type="radio" name="outline" value="1"> 1px</label>
+                            <label><input type="radio" name="outline" value="2"> 2px</label>
+                        </div>
+                    </div>
+                    <div class="setting-row">
+                        <span class="setting-label">描边颜色</span>
+                        <div class="color-preset">
+                            <select id="outlinePreset" class="preset-select">
+                                <option value="auto_dark">自动</option>
+                                <option value="auto_darker">自动 (更暗)</option>
+                                <option value="auto_medium_dark">自动 (更亮)</option>
+                                <option value="#000000">黑色</option>
+                                <option value="#404040">深灰</option>
+                                <option value="#808080">灰色</option>
+                                <option value="#FFFFFF">白色</option>
+                                <option value="#FF0000">红色</option>
+                                <option value="#0000FF">蓝色</option>
+                                <option value="#00FF00">绿色</option>
+                            </select>
+                            <input type="color" id="outlineColor" class="color-input" value="#000000">
+                        </div>
+                    </div>
+                    <div class="setting-row">
+                        <label class="radio-group" style="gap:8px;">
+                            <input type="checkbox" id="upscale48" checked>
+                            <span class="setting-label">提升至 48×48（纹理居中）</span>
+                        </label>
+                    </div>
+                    <div class="setting-row">
+                        <label class="radio-group" style="gap:8px;">
+                            <input type="checkbox" id="fillBackground" checked>
+                            <span class="setting-label">填充背景</span>
+                        </label>
+                    </div>
+                    <div class="setting-row">
+                        <span class="setting-label">背景颜色</span>
+                        <div class="color-preset">
+                            <select id="bgPreset" class="preset-select">
+                                <option value="auto_light">自动</option>
+                                <option value="auto_lighter">自动 (更亮)</option>
+                                <option value="auto_medium_light">自动 (更暗)</option>
+                                <option value="#FFFFFF">白色</option>
+                                <option value="#C0C0C0">浅灰</option>
+                                <option value="#808080">灰色</option>
+                                <option value="#404040">深灰</option>
+                                <option value="#000000">黑色</option>
+                                <option value="#FFD700">金黄</option>
+                                <option value="#87CEEB">天蓝</option>
+                            </select>
+                            <input type="color" id="bgColor" class="color-input" value="#888888">
+                        </div>
+                    </div>
+                    <!-- 新增：平均色设置行 -->
+                    <div class="setting-row">
+                        <span class="setting-label">平均色 <span style="font-size:0.65rem;color:var(--text2);font-weight:400;">(影响自动颜色)</span></span>
+                        <div class="color-preset" style="gap:8px;">
+                            <label style="display:flex;align-items:center;gap:4px;font-size:0.8rem;cursor:pointer;white-space:nowrap;">
+                                <input type="checkbox" id="autoAverage" checked> 自动
+                            </label>
+                            <input type="color" id="averageColorInput" class="color-input" value="#808080" disabled>
+                        </div>
+                    </div>
+                    <div class="setting-row">
+                        <span class="setting-label">倍率缩放</span>
+                        <select id="scaleSelect">
+                            <option value="1">1x（原始）</option>
+                            <option value="5">5x</option>
+                            <option value="10">10x</option>
+                            <option value="20">20x</option>
+                            <option value="50">50x</option>
+                        </select>
+                    </div>
+                    <div class="setting-row">
+                        <span class="setting-label">处理引擎</span>
+                        <select id="engineSelect" class="preset-select">
+                            <option value="new">默认</option>
+                            <option value="old">旧版 (收到浏览器Canvas较大影响)</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="btn-row">
+                    <button class="btn btn-success" id="downloadBtn" disabled>💾 下载结果PNG</button>
+                </div>
+            </div>
+        </div>
+        <p class="footer-note">咕咕嘎嘎</p>
+    </div>
+
+    <!-- 新增的 API 模块，必须放在 script.js 之前 -->
+    <script src="./html_src/mojang-api.js"></script>
+    <script type="module" src="./html_src/browser.js"></script>
+</body>
+
+</html>
