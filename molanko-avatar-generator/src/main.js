@@ -135,7 +135,7 @@ function drawNearestNeighbor(destCtx, srcData, srcW, srcH, dx, dy, dw, dh, overl
     const srcRow = srcY * srcW;
 
     for (let px = x0; px < x1; px++) {
-      const srcX = Math.floor((px - dx + 0.5) * scaleX)
+      const srcX = Math.floor((px - dx + 0.5) * scaleX);
       const si = (srcRow + srcX) * 4;
       const di = ((py - y0) * (x1 - x0) + (px - x0)) * 4;
 
@@ -196,7 +196,7 @@ function drawStretch(ctx, srcImg, sx, sy, sw, sh, dx, dy, dw, dh, overlayAlpha, 
 function createBaseTexture(sourceImage, createCanvas) {
   const canvas = createCanvas(32, 32);
   const ctx = get2dContext(canvas, { willReadFrequently: true });
-  const alpha = 76 / 255; // ≈ 0.298
+  const alpha = 76 / 255;
 
   // 正面 / 侧面等部位
   drawStretch(ctx, sourceImage, 56, 8, 8, 8, 10, 7, 18, 18, 0, createCanvas);
@@ -402,10 +402,6 @@ function applyOutline(destCtx, contentCanvas, offsetX, offsetY, outlineRadius, o
 /**
  * 构建最终画布（背景 + 内容 + 可选轮廓）
  */
-/**
- * 构建最终画布（背景 + 内容 + 可选轮廓）
- */
-// 1. 在参数列表中加上 customAvg = null
 function buildFinalCanvas(base32Canvas, options, createCanvas, customAvg = null) {
   const {
     outlineMode = 0,
@@ -417,7 +413,7 @@ function buildFinalCanvas(base32Canvas, options, createCanvas, customAvg = null)
 
   // 2. 优先使用传入的 customAvg（即 64x16 的头部颜色），如果没有才回退到 32x32[cite: 6]
   const avg = customAvg || getAverageColor(base32Canvas);
-  
+
   const finalOutlineColor = resolveOutlineColor(outlineColor, avg);
   const finalBgColor = resolveBgColor(bgColor, avg);
 
@@ -487,6 +483,7 @@ function applyScale(sourceCanvas, scale, createCanvas) {
  * @param {boolean} [options.upscale48=false]
  * @param {boolean} [options.fillBackground=true]
  * @param {number} [options.scale=1]
+ * @param {Object} [options.averageColor]           自定义平均色，格式 { r, g, b }，优先级高于自动计算
  */
 function processTexture(sourceImage, options = {}) {
   let createCanvas = options.createCanvas;
@@ -513,20 +510,23 @@ function processTexture(sourceImage, options = {}) {
     );
   }
 
-// 1. 创建 64x16 临时画布截取头部区域
-  const headCanvas = createCanvas(64, 16);
-  const hctx = get2dContext(headCanvas, { willReadFrequently: true });
-  hctx.drawImage(sourceImage, 0, 0, 64, 16, 0, 0, 64, 16);
+  // ---- 修改开始：优先使用用户传入的平均色 ----
+  let headAvgColor = options.averageColor;
 
-  // 2. 计算 64x16 区域的平均色
-  const headAvgColor = getAverageColor(headCanvas);
+  // 如果用户没有提供，则自动计算头部 64×16 区域的平均色
+  if (!headAvgColor) {
+    const headCanvas = createCanvas(64, 8);
+    const hctx = get2dContext(headCanvas, { willReadFrequently: true });
+    hctx.drawImage(sourceImage, 0, 8, 64, 8, 0, 0, 64, 8);
+    headAvgColor = getAverageColor(headCanvas);
+  }
 
   // 3. 生成基础 32x32 纹理[cite: 3]
   const base32 = createBaseTexture(sourceImage, createCanvas);
 
   // 4. 将 headAvgColor 传入 buildFinalCanvas[cite: 3]
   const finalBase = buildFinalCanvas(base32, options, createCanvas, headAvgColor);
-  
+
   const scale = options.scale || 1;
   return applyScale(finalBase, scale, createCanvas);
 }
@@ -545,7 +545,6 @@ export {
   resolveBgColor,
   createBrowserCanvas,
   get2dContext,
-  // 新增导出，方便测试或高级用法
   drawNearestNeighbor,
   getSourceImageData
 };

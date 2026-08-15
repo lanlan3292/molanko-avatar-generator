@@ -140,9 +140,9 @@
 
     function getHeadAverageColor(img) {
       // 只截取头部 64x16 区域计算平均色[cite: 3]
-      const tmp = createCanvas(64, 16);
+      const tmp = createCanvas(64, 8);
       const tctx = tmp.getContext('2d');
-      tctx.drawImage(img, 0, 0, 64, 16, 0, 0, 64, 16);
+      tctx.drawImage(img, 0, 8, 64, 8, 0, 0, 64, 8);
       return getAverageColor(tmp);
     }
 
