@@ -48,7 +48,7 @@
   engineSelect.value = savedEngine;
   engineSelect.addEventListener('change', (e) => {
     localStorage.setItem('engineChoice', e.target.value);
-    location.reload(); // 刷新页面以加载新引擎
+    location.reload();
   });
 
   // ========== 工具函数 ==========
@@ -65,7 +65,6 @@
 
   // ========== 动态导入核心引擎 ==========
   (async function init() {
-    // 根据选择决定导入路径
     const enginePath = savedEngine === 'old'
       ? '../molanko-avatar-generator/src/main_old.js'
       : '../molanko-avatar-generator/src/main.js';
@@ -79,17 +78,24 @@
       return;
     }
 
-    // 解构所需函数
     const {
       processTexture,
       resolveOutlineColor,
       resolveBgColor,
-      getAverageColor
+      getAverageColor,
+      createBaseTexture  // 新增导入，用于生成无遮罩纹理
     } = engine;
 
     // ========== 状态 ==========
     let currentSourceImage = null;
     let currentResultCanvas = null;
+
+    // ========== 获取与引擎一致的平均色 ==========
+    function getEngineAverageColor(img) {
+      // 生成不带侧面遮罩的 32×32 纹理，再计算平均色
+      const base = createBaseTexture(img, createCanvas, false);
+      return getAverageColor(base);
+    }
 
     // ========== 读取当前 UI 选项 ==========
     function getOptions() {
@@ -107,7 +113,7 @@
         upscale48: upscale48Checkbox.checked,
         fillBackground: fillBackgroundCheckbox.checked,
         scale: parseInt(scaleSelect.value, 10) || 1,
-        averageColor // 新增：手动指定的平均色
+        averageColor
       };
     }
 
@@ -142,32 +148,22 @@
       sourcePreviewCtx.drawImage(img, 0, 0);
     }
 
-    // ========== 计算头部平均色 ==========
-    function getHeadAverageColor(img) {
-      const tmp = createCanvas(64, 8);
-      const tctx = tmp.getContext('2d');
-      tctx.drawImage(img, 0, 8, 64, 8, 0, 0, 64, 8);
-      return getAverageColor(tmp);
-    }
-
-    // ========== 获取当前有效的平均色 ==========
+    // ========== 获取当前有效的平均色（供预设同步使用） ==========
     function getCurrentAverageColor() {
       if (autoAverageCheckbox.checked) {
-        // 自动：从头部计算
         if (currentSourceImage) {
-          return getHeadAverageColor(currentSourceImage);
+          return getEngineAverageColor(currentSourceImage);
         } else {
-          return { r: 128, g: 128, b: 128 }; // 默认
+          return { r: 128, g: 128, b: 128 };
         }
       } else {
-        // 手动：从颜色输入框读取
         const hex = averageColorInput.value;
         const rgb = hexToRgb(hex);
         return { r: rgb[0], g: rgb[1], b: rgb[2] };
       }
     }
 
-    // ========== 预设颜色同步 ==========
+    // ========== 预设颜色同步（使用当前平均色） ==========
     function applyOutlinePreset(value, avg) {
       if (!avg) avg = getCurrentAverageColor();
       if (value.startsWith('auto_') && currentSourceImage) {
@@ -196,9 +192,9 @@
       currentSourceImage = img;
       drawSourcePreview(img);
 
-      // 如果手动模式，将平均色输入框设为头部平均色（作为初始值）
+      // 如果手动模式，将平均色输入框设为引擎计算的平均色（作为初始值）
       if (!autoAverageCheckbox.checked) {
-        const avg = getHeadAverageColor(img);
+        const avg = getEngineAverageColor(img);
         averageColorInput.value = rgbToHex(avg.r, avg.g, avg.b);
       }
 
@@ -293,7 +289,6 @@
       downloadBtn.disabled = true;
       downloadBtn.textContent = '💾 下载结果PNG（需先导入图片）';
 
-      // 平均色输入框默认禁用（自动模式）
       averageColorInput.disabled = true;
     }
 
@@ -314,19 +309,16 @@
     autoAverageCheckbox.addEventListener('change', () => {
       const isAuto = autoAverageCheckbox.checked;
       averageColorInput.disabled = isAuto;
-      // 如果切换到手动模式，将当前皮肤的平均色填入颜色选择器
       if (!isAuto && currentSourceImage) {
-        const avg = getHeadAverageColor(currentSourceImage);
+        const avg = getEngineAverageColor(currentSourceImage);
         averageColorInput.value = rgbToHex(avg.r, avg.g, avg.b);
       }
-      // 重新应用预设（因为平均色可能变化）
       applyOutlinePreset(outlinePresetSelect.value);
       applyBgPreset(bgPresetSelect.value);
       renderFinal();
     });
 
     averageColorInput.addEventListener('input', () => {
-      // 手动模式下，平均色改变，需要更新自动预设的颜色值
       if (!autoAverageCheckbox.checked) {
         applyOutlinePreset(outlinePresetSelect.value);
         applyBgPreset(bgPresetSelect.value);

@@ -1,6 +1,6 @@
 {
   "name": "molanko-avatar-generator",
-  "version": "0.0.14",
+  "version": "0.0.16",
   "type": "module",
   "exports": {
     ".": "./molanko-avatar-generator/src/main.js",
