@@ -267,7 +267,7 @@ function getAverageColor(canvas) {
 }
 
 const outlineGenerators = {
-  auto_dark: (avg) => ({
+  auto: (avg) => ({
     r: Math.min(80, Math.round(avg.r * 0.25)),
     g: Math.min(80, Math.round(avg.g * 0.25)),
     b: Math.min(80, Math.round(avg.b * 0.25))
@@ -277,7 +277,7 @@ const outlineGenerators = {
     g: Math.min(50, Math.round(avg.g * 0.15)),
     b: Math.min(50, Math.round(avg.b * 0.15))
   }),
-  auto_medium_dark: (avg) => ({
+  auto_lighter: (avg) => ({
     r: Math.min(120, Math.round(avg.r * 0.4)),
     g: Math.min(120, Math.round(avg.g * 0.4)),
     b: Math.min(120, Math.round(avg.b * 0.4))
@@ -285,7 +285,7 @@ const outlineGenerators = {
 };
 
 const bgGenerators = {
-  auto_light: (avg) => ({
+  auto: (avg) => ({
     r: Math.min(230, Math.round(avg.r * 1.2 + 10)),
     g: Math.min(230, Math.round(avg.g * 1.2 + 10)),
     b: Math.min(230, Math.round(avg.b * 1.2 + 10))
@@ -295,7 +295,7 @@ const bgGenerators = {
     g: Math.min(250, Math.round(avg.g * 1.5 + 30)),
     b: Math.min(250, Math.round(avg.b * 1.5 + 30))
   }),
-  auto_medium_light: (avg) => ({
+  auto_darker: (avg) => ({
     r: Math.min(200, Math.round(avg.r * 0.9 + 30)),
     g: Math.min(200, Math.round(avg.g * 0.9 + 30)),
     b: Math.min(200, Math.round(avg.b * 0.9 + 30))
@@ -314,7 +314,7 @@ function hexToRgb(hex) {
 }
 
 function resolveOutlineColor(presetOrHex, avg) {
-  if (typeof presetOrHex === 'string' && presetOrHex.startsWith('auto_')) {
+  if (typeof presetOrHex === 'string' && presetOrHex.startsWith('auto')) {
     const gen = outlineGenerators[presetOrHex];
     if (gen) {
       const c = gen(avg);
@@ -326,7 +326,7 @@ function resolveOutlineColor(presetOrHex, avg) {
 }
 
 function resolveBgColor(presetOrHex, avg) {
-  if (typeof presetOrHex === 'string' && presetOrHex.startsWith('auto_')) {
+  if (typeof presetOrHex === 'string' && presetOrHex.startsWith('auto')) {
     const gen = bgGenerators[presetOrHex];
     if (gen) {
       const c = gen(avg);
